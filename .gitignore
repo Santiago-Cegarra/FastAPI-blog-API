@@ -1,0 +1,16 @@
+# Variables de entorno
+.env
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+#DATABASE TESTING
+*.db
+*.sqlite3
