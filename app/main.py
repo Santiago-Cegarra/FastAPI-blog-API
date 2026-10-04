@@ -1,4 +1,3 @@
-import os
 import math
 from datetime import datetime
 from fastapi import FastAPI, Query, HTTPException, Path, status, Depends
@@ -7,26 +6,7 @@ from typing import Optional, List, Union, Literal
 from sqlalchemy import create_engine, Integer, String, DateTime, Text, select, func, UniqueConstraint, ForeignKey, Table, Column# NOQA
 from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase, Mapped, mapped_column, relationship, selectinload, joinedload # NOQA
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from dotenv import load_dotenv
-
-
-load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./blog.db")
-# print(f"Conectado a {DATABASE_URL}")
-
-engine_kwargs = {}
-if DATABASE_URL.startswith("sqlite"):
-    engine_kwargs["connect_args"] = {"check_same_thread": False}
-
-engine = create_engine(DATABASE_URL, echo=True, future=True,
-                       **engine_kwargs)
-
-SessionLocal = sessionmaker(bind=engine, autoflush=False,
-                            autocommit=False, class_=Session)
-
-
-class Base(DeclarativeBase):
-    pass
+from core.db import Base
 
 
 class AuthorORM(Base):
@@ -86,15 +66,6 @@ class PostORM(Base):
 
 
 Base.metadata.create_all(bind=engine)  # DEV enviroment
-
-
-def get_connection_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 
 app = FastAPI(title='Mini Blog')
 banned_words = ["puta", "porno", "pipi", "cuca", "spam"]
