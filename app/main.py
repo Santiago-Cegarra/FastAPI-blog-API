@@ -36,29 +36,7 @@ def list_posts(
     ),
     db: Session = Depends(get_connection_db)
 ):
-    results = select(PostORM)
-
-    if query:
-        results = results.where(PostORM.title.ilike(f"%{query}%"))
-
-    total = db.scalar(select(func.count()).select_from(results.subquery())) or 0  # noqa
-
-    #results = sorted(results, key=lambda post: post[order_by], reverse= direction=="desc") # noqa
-
-    total_pages = math.ceil(total / limit) if total > 0 else 0
-
-    if order_by == "id":
-        order_col = PostORM.id
-    else:
-        order_col = func.lower(PostORM.title)
-
-    results = results.order_by(
-        order_col.asc() if direction == "asc" else order_col.desc()
-    )
-    if total_pages > 0:
-        items = db.execute(results.limit(limit).offset(offset)).scalars().all()
-    else:
-        items = []
+   
     return PaginatedPost(page=(offset // limit)+1,
                          per_page=limit,
                          total=total,
@@ -100,22 +78,22 @@ def filter_by_tags(
     ),
     db: Session = Depends(get_connection_db)
 ):
-    normalized_tags_name = [tag.strip().lower() for tag in tags if tag.strip()]
-    print(normalized_tags_name)
-    if not normalized_tags_name:
-        return []
-    post_list = (
-        select(PostORM).options(
-            selectinload(PostORM.tags),
-            joinedload(PostORM.author)
-        ).where(PostORM.tags.any(
-            func.lower(TagsORM.tag_name).in_(
-                normalized_tags_name)
-                    )
-                ).order_by(PostORM.id.asc())
-    )
+    # normalized_tags_name = [tag.strip().lower() for tag in tags if tag.strip()]
+    # print(normalized_tags_name)
+    # if not normalized_tags_name:
+    #     return []
+    # post_list = (
+    #     select(PostORM).options(
+    #         selectinload(PostORM.tags),
+    #         joinedload(PostORM.author)
+    #     ).where(PostORM.tags.any(
+    #         func.lower(TagsORM.tag_name).in_(
+    #             normalized_tags_name)
+    #                 )
+    #             ).order_by(PostORM.id.asc())
+    # )
 
-    posts = db.execute(post_list).scalars().all()
+    # posts = db.execute(post_list).scalars().all()
     return posts
 
 
