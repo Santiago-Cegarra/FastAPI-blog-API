@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from app.core.db import get_connection_db
 from .schemas import PostPublic, PaginatedPost, postUpdate, PostCreate, PostSummary # noqa
 from .repository import PostRepository
-from fastapi import Query, Path, status
+from fastapi import Query, Path, status, HTTPException
 from math import ceil
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError, HTTPException
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 
 router = APIRouter(prefix="/posts", tags=["post"])
@@ -122,11 +122,17 @@ def update_post_by_id(post_id: int, data: postUpdate,
     post = repository.get_by_id(post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post no Encontrado")
-    updates = data.model_dump(exclude_unset=True)
-    repository.update_post(post, updates)
-    db.commit()
-    db.refresh(post)
-    return post
+    try:
+        updates = data.model_dump(exclude_unset=True)
+        post = repository.update_post(post, updates)
+        db.commit()
+        db.refresh(post)
+        return post
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, detail="Error Updating Post"
+        )
 
 
 @router.delete("/{post_id}")
@@ -134,8 +140,16 @@ def delete_by_id(post_id: int,
                  db: Session = Depends(get_connection_db)):
     repository = PostRepository(db)
     post = repository.get_by_id(post_id)
+
     if not post:
         raise HTTPException(status_code=404, detail="Post no Encontrado")
-    repository.delete_post(post)
-    db.commit()
+
+    try:
+        repository.delete_post(post)
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, detail="Error Deleting Post"
+        )
     return None
