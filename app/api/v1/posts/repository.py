@@ -9,7 +9,7 @@ class PostRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get(self, post_id: int) -> Optional[PostORM]:
+    def get_by_id(self, post_id: int) -> Optional[PostORM]:
         post_find = select(PostORM).where(PostORM.id == post_id)
         return self.db.execute(post_find).scalar_one_or_none()
 
@@ -92,13 +92,13 @@ class PostRepository:
         self.db.refresh(post)
         return post
 
-    def update_post(self, post, updates):
+    def update_post(self, post: PostORM, updates: dict) -> PostORM:
         for k, v in updates.items():
             setattr(post, k, v)
         self.db.flush()
         return post
 
-    def delete_post(self, post) -> PostORM:
+    def delete_post(self, post: PostORM) -> PostORM:
         self.db.delete(post)
         self.db.flush()
         return post
