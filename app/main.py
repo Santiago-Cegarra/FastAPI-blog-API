@@ -1,15 +1,13 @@
-import math
-from fastapi import FastAPI, Query, HTTPException, Path, status, Depends
-from typing import Optional, List, Union, Literal
-from sqlalchemy import create_engine, Integer, String, DateTime, Text, select, func, UniqueConstraint, ForeignKey, Table, Column# NOQA
-from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase, Mapped, mapped_column, relationship, selectinload, joinedload # NOQA
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from core.db import Base
-
-Base.metadata.create_all(bind=engine)  # DEV enviroment
-app = FastAPI(title='Mini Blog')
+from fastapi import FastAPI
+from app.core.db import Base, engine
+from app.api.v1.posts.router import router as post_router
 
 
-@app.get('/')
-def home():
-    return {'message': 'Welcome to the blog of Santiago'}
+def create_app() -> FastAPI:
+    app = FastAPI(title="My Blog")
+    Base.metadata.create_all(bind=engine)  # DEV enviroment
+    app.include_router(post_router)
+    return app
+
+
+app = create_app()

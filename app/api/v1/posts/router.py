@@ -51,20 +51,21 @@ def list_posts(
 
 
 @router.get("/{post_id}", response_model=Union[PostPublic, PostSummary],
-            response_description="Post Encontrado")
-def get_post_by_id(id: int = Path(
+            response_description="Post Not Found")
+def get_post_by_id(post_id: int = Path(
 
     ...,
     gt=0,
     title="ID del post",
     description="ID entero del Post (no negativos)",
     examples=1
-    ), include_content: bool | None = Query(default=True, desc="queryparam"),
+    ), include_content: bool | None = Query(default=True,
+                                            description="queryparam"),
     db: Session = Depends(get_connection_db)
      ):
 
     repository = PostRepository(db)
-    post = repository.get_by_id(id)
+    post = repository.get_by_id(post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post no Encontrado")
     if include_content:
