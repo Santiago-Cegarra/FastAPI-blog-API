@@ -1,16 +1,17 @@
 import os
+import jwt
 from fastapi.security import OAuth2PasswordBearer
 from datetime import timedelta, timezone, datetime
 from typing import Optional
-import jwt
-
+from fastapi import Depends, HTTPException, status
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-prod")
 ALGORITHM = os.getenv("ALGORITHM", "HS-256")
 ACCES_TOKEN_EXPIRE_MINUTE = int(os.getenv("ACCES_EXPIRE_TIME",
                                           "30"))
 
-oauth_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 def create_token(data: dict,
@@ -20,12 +21,54 @@ def create_token(data: dict,
         minutes=ACCES_TOKEN_EXPIRE_MINUTE
     ))
     to_encode.update({"exp": expire})
-    token = jwt.encode(payload=to_encode,
-                       key=SECRET_KEY,
-                       algorithm=ALGORITHM)
+    token = jwt.encode(
+        payload=to_encode,
+        key=SECRET_KEY,
+        algorithm=ALGORITHM
+    )
 
     return token
 
 
-def decode_token():
-    pass
+def decode_token(token: str) -> dict:
+    payload = jwt.decode(
+        jwt=token,
+        key=SECRET_KEY,
+        algorithms=[ALGORITHM]
+    )
+
+    return payload
+
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exc = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={
+            "WWW-Authenticate": "Bearer"
+        }
+    )
+
+    try:
+        payload = decode_token(token)
+        sub: Optional[str] = payload.get("sub")
+        username: Optional[str] = payload.get("username")
+        if not sub or not username:
+            raise credentials_exc
+
+        return {
+            "email": sub,
+            "username": username
+        }
+
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+            headers={
+                "WWW-Authenticate": "Bearer"
+            }
+        )
+
+    except InvalidTokenError:
+        raise credentials_exc

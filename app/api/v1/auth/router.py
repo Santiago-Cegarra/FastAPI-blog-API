@@ -1,0 +1,43 @@
+from datetime import timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
+from .schemas import Token, UserPublic
+from fastapi.security import OAuth2PasswordBearer
+from core.security import create_token, get_current_user
+
+FAKE_USERS = {
+    "ricardo@example.com": {"email": "ricardo@example.com", "username": "ricardo", "password": "secret123"}, # noqa
+    "alumno@example.com":  {"email": "alumno@example.com",  "username": "alumno",  "password": "123456"},    # noqa    
+}
+
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+@router.post("/login", response_model=Token)
+def login(form_data: OAuth2PasswordBearer = Depends()):
+    user = FAKE_USERS.get(form_data.username)
+    if not user or user["password"] != form_data.password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password"
+        )
+    token = create_token(
+        data={
+            "sub": user["email"],
+            "username": user["username"]
+        },
+        expires_delta=timedelta(minutes=30)
+    )
+
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
+
+
+@router.get("/me", response_model=UserPublic)
+def read_me(current=Depends(get_current_user)):
+    return {
+        "email": current["email"],
+        "username": current["username"]
+    }
