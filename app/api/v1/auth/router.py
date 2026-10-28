@@ -1,8 +1,8 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from .schemas import Token, UserPublic
-from fastapi.security import OAuth2PasswordBearer
-from core.security import create_token, get_current_user
+from fastapi.security import OAuth2PasswordRequestForm
+from app.core.security import create_token, get_current_user
 
 FAKE_USERS = {
     "ricardo@example.com": {"email": "ricardo@example.com", "username": "ricardo", "password": "secret123"}, # noqa
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=Token)
-def login(form_data: OAuth2PasswordBearer = Depends()):
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = FAKE_USERS.get(form_data.username)
     if not user or user["password"] != form_data.password:
         raise HTTPException(

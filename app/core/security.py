@@ -7,7 +7,7 @@ from fastapi import Depends, HTTPException, status
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-prod")
-ALGORITHM = os.getenv("ALGORITHM", "HS-256")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCES_TOKEN_EXPIRE_MINUTE = int(os.getenv("ACCES_EXPIRE_TIME",
                                           "30"))
 

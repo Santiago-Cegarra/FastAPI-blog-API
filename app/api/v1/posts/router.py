@@ -7,7 +7,7 @@ from .repository import PostRepository
 from fastapi import Query, Path, status, HTTPException
 from math import ceil
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from app.core.security import oauth_scheme
+from app.core.security import oauth2_scheme
 
 
 router = APIRouter(prefix="/posts", tags=["post"])
@@ -158,6 +158,6 @@ def delete_by_id(post_id: int,
 
 
 @router.get("/secure")
-def secure_endp(token: str = Depends(oauth_scheme)):
+def secure_endp(token: str = Depends(oauth2_scheme)):
     return {"message": "Token Acess",
             "token_received": token}
