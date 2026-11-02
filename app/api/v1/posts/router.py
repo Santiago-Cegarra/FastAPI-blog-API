@@ -7,7 +7,7 @@ from .repository import PostRepository
 from fastapi import Query, Path, status, HTTPException
 from math import ceil
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from app.core.security import oauth2_scheme
+from app.core.security import oauth2_scheme, get_current_user
 
 
 router = APIRouter(prefix="/posts", tags=["post"])
@@ -92,16 +92,18 @@ def filter_by_tags(
              response_description="Post Created Succesfully",
              status_code=status.HTTP_201_CREATED,
              response_model_exclude_unset=True)
-def create_post(post: PostCreate, db: Session = Depends(get_connection_db)):
+def create_post(post: PostCreate,
+                db: Session = Depends(get_connection_db),
+                user=Depends(get_current_user)):
+
     repository = PostRepository(db)
     try:
-        new_post = repository.create_post(title=post.title,
-                                          content=post.content,
-                                          author=(post.author.model_dump()
-                                                  if post.author else None),
-                                          tags=[tag.model_dump()
-                                                for tag in post.tags]
-                                          )
+        new_post = repository.create_post(
+            title=post.title,
+            content=post.content,
+            author=user,
+            tags=[tag.model_dump() for tag in post.tags]
+        )
         db.commit()
         db.refresh(new_post)
         return new_post
@@ -119,7 +121,8 @@ def create_post(post: PostCreate, db: Session = Depends(get_connection_db)):
             response_description="Post Updated Succesfully",
             response_model_exclude_none=True)
 def update_post_by_id(post_id: int, data: postUpdate,
-                      db: Session = Depends(get_connection_db)):
+                      db: Session = Depends(get_connection_db),
+                      user=Depends(get_current_user)):
     repository = PostRepository(db)
     post = repository.get_by_id(post_id)
     if not post:
@@ -139,7 +142,8 @@ def update_post_by_id(post_id: int, data: postUpdate,
 
 @router.delete("/{post_id}")
 def delete_by_id(post_id: int,
-                 db: Session = Depends(get_connection_db)):
+                 db: Session = Depends(get_connection_db),
+                 user=Depends(get_current_user)):
     repository = PostRepository(db)
     post = repository.get_by_id(post_id)
 

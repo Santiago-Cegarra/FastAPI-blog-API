@@ -47,7 +47,7 @@ class PostCreate(BaseModel):
         examples=["Descripcion de un post mano todo bn sisa"]
     )
     tags: List[Tag] = Field(default_factory=list)
-    author: Author = None
+    # author: Author = None
 
     @field_validator("title")
     @classmethod
