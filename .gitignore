@@ -14,3 +14,6 @@ __pycache__/
 #DATABASE TESTING
 *.db
 *.sqlite3
+
+#Media
+app/media
