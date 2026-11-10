@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./blog.db")
-# print(f"Conectado a {DATABASE_URL}")
+print(f"Conectado a {DATABASE_URL}")
 
 engine_kwargs = {}
 if DATABASE_URL.startswith("sqlite"):

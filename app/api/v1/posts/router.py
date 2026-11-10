@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends
-from typing import Optional, List, Union, Literal
+from fastapi import APIRouter, Depends, UploadFile, File
+from typing import Optional, List, Union, Literal, Annotated
 from sqlalchemy.orm import Session
 from app.core.db import get_connection_db
 from .schemas import PostPublic, PaginatedPost, postUpdate, PostCreate, PostSummary # noqa
@@ -8,7 +8,7 @@ from fastapi import Query, Path, status, HTTPException
 from math import ceil
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from app.core.security import oauth2_scheme, get_current_user
-
+from app.services.file_storage import save_uploaded_file
 
 router = APIRouter(prefix="/posts", tags=["post"])
 
@@ -92,17 +92,24 @@ def filter_by_tags(
              response_description="Post Created Succesfully",
              status_code=status.HTTP_201_CREATED,
              response_model_exclude_unset=True)
-def create_post(post: PostCreate,
+def create_post(post: Annotated[PostCreate, Depends(PostCreate.as_form)],
+                image: Optional[UploadFile] = File(None),
                 db: Session = Depends(get_connection_db),
                 user=Depends(get_current_user)):
 
     repository = PostRepository(db)
+    saved = None
     try:
+        if image is not None:
+            saved = save_uploaded_file(image)
+        image_url = saved["url"] if saved else None
+
         new_post = repository.create_post(
             title=post.title,
             content=post.content,
             author=user,
-            tags=[tag.model_dump() for tag in post.tags]
+            tags=[tag.model_dump() for tag in post.tags],
+            image_url=image_url
         )
         db.commit()
         db.refresh(new_post)

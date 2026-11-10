@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Annotated
+from fastapi import Form
 banned_words = ["example", "example", "example", "example", "spam"]
 
 
@@ -29,6 +30,8 @@ class PostBase(BaseModel):
     content: str
     tags: Optional[List[Tag]] = Field(default_factory=list) # Create list for every object # NOQA
     author: Optional[Author] = None
+    image_url: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PostCreate(BaseModel):
@@ -57,6 +60,30 @@ class PostCreate(BaseModel):
                 raise ValueError(f"Titulo no valido, borra \'{palabra}\'"
                                  " porfavor")
         return value
+
+    @classmethod
+    def as_form(
+        cls,
+        title: Annotated[str, Form(min_length=3)],
+        content: Annotated[str, Form(min_length=10)],
+        tags: Annotated[Optional[List[str]], Form()] = None,
+    ):
+        raw_tags: List[str] = []
+        if tags:
+            for item in tags:
+                split_items = [part.strip() for part in item.split(",")
+                               if part.strip()]
+                raw_tags.extend(split_items)
+
+        unique_tags = list(dict.fromkeys(raw_tags))
+
+        tag_objs = [Tag(tag_name=t) for t in unique_tags]
+
+        return cls(
+            title=title,
+            content=content,
+            tags=tag_objs
+        )
 
 
 class postUpdate(BaseModel):
