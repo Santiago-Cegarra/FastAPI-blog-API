@@ -14,5 +14,6 @@ async def save_file(file: UploadFile = File(...)):
     return {
         "filename": saved["filename"],
         "content_type": saved["content_type"],
-        "url": saved["url"]
+        "url": saved["url"],
+        # "size": saved["size"]
     }

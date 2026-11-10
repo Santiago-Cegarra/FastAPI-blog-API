@@ -68,7 +68,7 @@ def get_post_by_id(post_id: int = Path(
     repository = PostRepository(db)
     post = repository.get_by_id(post_id)
     if not post:
-        raise HTTPException(status_code=404, detail="Post no Encontrado")
+        raise HTTPException(status_code=404, detail="Post not found")
     if include_content:
         return PostPublic.model_validate(post, from_attributes=True)
 
@@ -133,7 +133,7 @@ def update_post_by_id(post_id: int, data: postUpdate,
     repository = PostRepository(db)
     post = repository.get_by_id(post_id)
     if not post:
-        raise HTTPException(status_code=404, detail="Post no Encontrado")
+        raise HTTPException(status_code=404, detail="Post not found")
     try:
         updates = data.model_dump(exclude_unset=True)
         post = repository.update_post(post, updates)
@@ -155,7 +155,7 @@ def delete_by_id(post_id: int,
     post = repository.get_by_id(post_id)
 
     if not post:
-        raise HTTPException(status_code=404, detail="Post no Encontrado")
+        raise HTTPException(status_code=404, detail="Post not found")
 
     try:
         repository.delete_post(post)
