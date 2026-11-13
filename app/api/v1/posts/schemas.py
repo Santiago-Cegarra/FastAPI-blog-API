@@ -9,7 +9,7 @@ class Author(BaseModel):
         ...,
         min_length=4,
         max_length=20,
-        description="Nombre del Autor"
+        description="Author name"
     )
     email: EmailStr
     model_config = ConfigDict(from_attributes=True)
@@ -20,7 +20,7 @@ class Tag(BaseModel):
         ...,
         min_length=2,
         max_length=30,
-        description="Nombre de la etiqueta"
+        description="Tag name"
     )
     model_config = ConfigDict(from_attributes=True)
 
@@ -37,17 +37,17 @@ class PostBase(BaseModel):
 class PostCreate(BaseModel):
     title: str = Field(
         ...,
-        min_length=5,
+        min_length=3,
         max_length=100,
-        description='Titulo del post (min 5 max 100)',
-        examples=["Mi primer Post con FastAPI"]
+        description='Post title (min 5 max 100)',
+        examples=["My first Post with FastAPI"]
     )
     content: Optional[str] = Field(
         min_length=10,
         max_length=200,
-        default="Default de un Post",
-        description="Contenido del Post no mames wey",
-        examples=["Descripcion de un post mano todo bn sisa"]
+        default="Default Post content",
+        description="Post content",
+        examples=["A description of a post"]
     )
     tags: List[Tag] = Field(default_factory=list)
     # author: Author = None
@@ -55,10 +55,9 @@ class PostCreate(BaseModel):
     @field_validator("title")
     @classmethod
     def not_allowed_title(cls, value: str) -> str:
-        for palabra in banned_words:
-            if palabra.lower() in value.lower():
-                raise ValueError(f"Titulo no valido, borra \'{palabra}\'"
-                                 " porfavor")
+        for word in banned_words:
+            if word.lower() in value.lower():
+                raise ValueError(f"Invalid title, please remove \'{word}\'")
         return value
 
     @classmethod

@@ -17,16 +17,16 @@ router = APIRouter(prefix="/posts", tags=["post"])
 def list_posts(
     query: Optional[str] = Query(
         default=None,
-        desc="Buscar por titulo",
+        desc="Search by title",
         alias="search",
         min_length=3,
         max_length=20,
         pattern=r"^[a-zA-Z]+$",
     ),
     limit: int = Query(
-        10, ge=1, le=50, description="Resultados " "devueltos(1-50)" # noqa
+        10, ge=1, le=50, description="Results " "returned(1-50)" # noqa
     ),
-    offset: int = Query(0, ge=0, description="Elementos desde"),  # noqa
+    offset: int = Query(0, ge=0, description="Offset from"),  # noqa
     order_by: Literal["id", "title"] = Query("id", description="Order field"),  # noqa
     direction: Literal["asc", "desc"] = Query(
         "asc", description="Direction Order"  # noqa
@@ -57,8 +57,8 @@ def get_post_by_id(post_id: int = Path(
 
     ...,
     gt=0,
-    title="ID del post",
-    description="ID entero del Post (no negativos)",
+    title="Post ID",
+    description="Integer Post ID (non-negative)",
     examples=1
     ), include_content: bool | None = Query(default=True,
                                             description="queryparam"),
@@ -121,7 +121,7 @@ def create_post(post: Annotated[PostCreate, Depends(PostCreate.as_form)],
     except SQLAlchemyError:
         db.rollback()
         raise HTTPException(status_code=500,
-                            detail="Error al crear el post")
+                            detail="Error creating the post")
 
 
 @router.put("{post_id}", response_model=PostPublic,
