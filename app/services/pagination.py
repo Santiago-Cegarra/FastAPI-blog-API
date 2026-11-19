@@ -1,12 +1,11 @@
 from math import ceil
-
 from sqlalchemy import func, select
 from typing import Any, Dict, Optional
-from fastapi import Depends
 from sqlalchemy.orm import Session
 
 DEFAULT_PER_PAGE = 10
 MAX_PER_PAGE = 50
+
 
 def clear_pagination(
         page: int = 1,
@@ -22,9 +21,9 @@ def clear_pagination(
 
 
 def paginated_query(
-        db: Session = Depends,
-        model,                                                      
-        base_query = None,
+        db: Session,
+        model,
+        base_query=None,
         page: int = 1,
         per_page: int = 10,
         order_by: Optional[str] = None,
@@ -51,12 +50,12 @@ def paginated_query(
         )
 
     items = db.execute(
-        query.offset((page - 1) * per_page).limit(per_page).scalars().all()
-    )
+        query.offset((page - 1) * per_page).limit(per_page)
+    ).scalars().all()
 
     return {
         "total": total,
-        "pages": ceil(total//per_page),
+        "pages": ceil(total/per_page),
         "per_page": per_page,
         "items": items
     }
